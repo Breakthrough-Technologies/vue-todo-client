@@ -2,7 +2,7 @@
   <div class="hello">
     <h1>{{ title }}</h1>
 
-    <label>Add a new task <input v-model="newTask" /></label>
+    <label>Add a new task <input v-model="newTask" /><button v-on:click="addTask()">Add</button></label>
 
     <h2>Tasks</h2>
     <ul v-for="task in tasks">
@@ -23,6 +23,11 @@ export default {
         { description: 'Do another thing', completed: false },
         { description: 'Do some more stuff', completed: false }
       ]
+    }
+  },
+  methods: {
+    addTask: function () {
+      this.tasks.push({description: this.newTask, completed: false})
     }
   }
 }
