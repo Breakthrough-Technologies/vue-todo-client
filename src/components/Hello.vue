@@ -1,8 +1,13 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
+    <h1>{{ title }}</h1>
 
-    <label><input v-model="label" />{{ label }}</label>
+    <label>Add a new task <input v-model="newTask" /></label>
+
+    <h2>Tasks</h2>
+    <ul v-for="task in tasks">
+      <li>{{ task.description }}</li>
+    </ul>
   </div>
 </template>
 
@@ -11,8 +16,13 @@ export default {
   name: 'hello',
   data () {
     return {
-      msg: 'ToDo List',
-      label: ''
+      title: 'ToDo List',
+      newTask: '',
+      tasks: [
+        { description: 'A task to do', completed: false },
+        { description: 'Do another thing', completed: false },
+        { description: 'Do some more stuff', completed: false }
+      ]
     }
   }
 }
@@ -30,7 +40,6 @@ ul {
 }
 
 li {
-  display: inline-block;
   margin: 0 10px;
 }
 
