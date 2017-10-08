@@ -5,14 +5,25 @@
     <label>Add a new task <input v-model="newTask" /><button v-on:click="addTask()">Add</button></label>
 
     <h2>Tasks</h2>
-    <p v-if="tasks.length">
-      <ul v-for="task in tasks">
-        <li>{{ task.description }}</li>
-      </ul>
-    </p>
-    <p v-else>
+    <div v-if="tasks.length">
+      <p v-if="incompleteTasks.length">
+        <ul v-for="task in incompleteTasks">
+          <li><input type="checkbox" v-model="task.completed"> {{ task.description }}</li>
+        </ul>
+      </p>
+      <p v-else>
+        All tasks have been completed!
+      </p>
+      <hr>
+      <p v-if="completedTasks.length">
+        <ul v-for="task in completedTasks">
+          <li><input type="checkbox" v-model="task.completed"> {{ task.description }}</li>
+        </ul>
+      </p>
+    </div>
+    <div v-else>
       There are no tasks yet
-    </p>
+    </div>
   </div>
 </template>
 
@@ -30,6 +41,14 @@ export default {
     addTask: function () {
       this.tasks.push({description: this.newTask, completed: false})
       this.newTask = ''
+    }
+  },
+  computed: {
+    completedTasks: function () {
+      return this.tasks.filter(task => task.completed)
+    },
+    incompleteTasks: function () {
+      return this.tasks.filter(task => !task.completed)
     }
   }
 }
