@@ -5,9 +5,14 @@
     <label>Add a new task <input v-model="newTask" /><button v-on:click="addTask()">Add</button></label>
 
     <h2>Tasks</h2>
-    <ul v-for="task in tasks">
-      <li>{{ task.description }}</li>
-    </ul>
+    <p v-if="tasks.length">
+      <ul v-for="task in tasks">
+        <li>{{ task.description }}</li>
+      </ul>
+    </p>
+    <p v-else>
+      There are no tasks yet
+    </p>
   </div>
 </template>
 
@@ -18,16 +23,13 @@ export default {
     return {
       title: 'ToDo List',
       newTask: '',
-      tasks: [
-        { description: 'A task to do', completed: false },
-        { description: 'Do another thing', completed: false },
-        { description: 'Do some more stuff', completed: false }
-      ]
+      tasks: []
     }
   },
   methods: {
     addTask: function () {
       this.tasks.push({description: this.newTask, completed: false})
+      this.newTask = ''
     }
   }
 }
@@ -40,7 +42,6 @@ h1, h2 {
 }
 
 ul {
-  list-style-type: none;
   padding: 0;
 }
 
