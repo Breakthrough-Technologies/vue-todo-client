@@ -17,28 +17,51 @@
             </div>
           </div>
         </div>
-        <div class="panel-tabs">
-          <a class="is-active">all</a>
-          <a>completed</a>
+        
+        <div class="panel-tabs"> 
+          <a v-bind:class="{ 'is-active': tab.allActive }" v-on:click="activateTab(1)">All ({{ allTasks.length }})</a>
+          <a v-bind:class="{ 'is-active': tab.incompleteActive }" v-on:click="activateTab(2)">Incomplete ({{ incompleteTasks.length }})</a>
+          <a v-bind:class="{ 'is-active': tab.completedActive }" v-on:click="activateTab(3)">Completed ({{ completedTasks.length }})</a>
+          <a v-bind:class="{ 'is-active': tab.deletedActive }" v-on:click="activateTab(4)">Deleted ({{ deletedTasks.length }})</a>
         </div>
-        <div v-if="tasks.length">
-          <div v-if="incompleteTasks.length">
-            <span class="panel-block" v-for="task in incompleteTasks">
-              <input type="checkbox" v-model="task.completed"> {{ task.description }}
-            </span>
-          </div>
-          <div v-if="completedTasks.length">
-            <span class="panel-block"><strong>Completed tasks</strong></span>
-            <span class="panel-block" v-for="task in completedTasks">
-              <input type="checkbox" v-model="task.completed"> {{ task.description }}
-            </span>
-          </div>
+        
+        <div class="panel-block" v-if="!allTasks.length">
+          There are no tasks yet
         </div>
-        <div v-else>
-          <span class="panel-block">
-            There are no tasks yet
-          </span>
+
+        <div class="panel-block incomplete-tasks" v-for="task in incompleteTasks" v-if="tab.allActive || tab.incompleteActive">
+            <p class="control">
+              <label class="checkbox">
+                <input v-model="task.completed" type="checkbox">
+                {{ task.description }}
+              </label>
+              <p class="icon is-small is-danger is-pulled-right" v-on:click="deleteTask(task.id)">
+                  <i class="fa fa-remove"></i>
+              </p>
+            </p>
         </div>
+        
+        <div class="panel-block complete-tasks" v-for="task in completedTasks" v-if="tab.allActive || tab.completedActive">
+            <p class="control">
+              <label class="checkbox">
+                <input v-model="task.completed" type="checkbox">
+                {{ task.description }}
+              </label>
+              <p class="icon is-small is-danger is-pulled-right" v-on:click="deleteTask(task.id)">
+                  <i class="fa fa-remove"></i>
+              </p>
+            </p>
+        </div>
+        
+        <div class="panel-block trashed-tasks" v-for="task in deletedTasks" v-if="tab.deletedActive">
+            <p class="control">
+              <label class="checkbox disabled">
+                <input :checked="task.completed" type="checkbox">
+                {{ task.description }}
+              </label>
+            </p>
+        </div>
+
       </nav>
 
     </section>
@@ -54,6 +77,12 @@ export default {
       title: 'ToDo List',
       newTask: '',
       tasks: [],
+      tab: {
+        allActive: true,
+        incompleteActive: false,
+        completedActive: false,
+        deletedActive: false
+      },
       buttons: {
         addTask: {
           title: 'Click to add a new task',
@@ -76,38 +105,33 @@ export default {
     },
     addTask: function () {
       if (this.newTask.length) {
-        this.tasks.push({description: this.newTask, completed: false})
+        this.tasks.push({description: this.newTask, completed: false, deleted: false})
         this.newTask = '' // clear the text box
         this.buttons.addTask.disabled = true // once we're done adding the task, disable the button again
+      }
+    },
+    activateTab: function (i) {
+      this.tab = {
+        allActive: i === 1,
+        incompleteActive: i === 2,
+        completedActive: i === 3,
+        deletedActive: i === 4
       }
     }
   },
   computed: {
+    allTasks: function () {
+      return this.tasks.filter(task => !task.deleted)
+    },
     completedTasks: function () {
-      return this.tasks.filter(task => task.completed)
+      return this.allTasks.filter(task => task.completed)
     },
     incompleteTasks: function () {
-      return this.tasks.filter(task => !task.completed)
+      return this.allTasks.filter(task => !task.completed)
+    },
+    deletedTasks: function () {
+      return this.tasks.filter(task => task.deleted)
     }
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h1, h2 {
-  font-weight: normal;
-}
-
-ul {
-  padding: 0;
-}
-
-li {
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
-</style>
