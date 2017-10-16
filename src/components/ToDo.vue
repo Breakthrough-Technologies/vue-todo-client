@@ -70,6 +70,9 @@
 </template>
 
 <script>
+import _ from 'lodash'
+import Crypto from 'crypto-browserify'
+
 export default {
   name: 'todo',
   data () {
@@ -105,7 +108,8 @@ export default {
     },
     addTask: function () {
       if (this.newTask.length) {
-        this.tasks.push({description: this.newTask, completed: false, deleted: false})
+        const newId = this.genRandTaskId(this.tasks.length + 1, this.newTask)
+        this.tasks.push({ id: newId, description: this.newTask, completed: false, deleted: false })
         this.newTask = '' // clear the text box
         this.buttons.addTask.disabled = true // once we're done adding the task, disable the button again
       }
@@ -117,6 +121,14 @@ export default {
         completedActive: i === 3,
         deletedActive: i === 4
       }
+    },
+    genRandTaskId: function (num, seed) {
+      const thisseed = seed || Math.random()
+      return Crypto.createHash('sha256').update(new Date() + num.toString() + thisseed).digest('hex')
+    },
+    deleteTask: function (id) {
+      const itemIndex = _.findIndex(this.tasks, task => task.id === id)
+      this.tasks[itemIndex].deleted = true
     }
   },
   computed: {
