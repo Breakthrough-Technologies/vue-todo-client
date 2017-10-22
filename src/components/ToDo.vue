@@ -5,26 +5,46 @@
 
       <nav class="panel">
         <div class="panel-heading">
-          Tasks
-        </div>
-        <div class="panel-block">
-          <div class="field has-addons">
-            <div class="control">
-              <input class="input" type="text" placeholder="Add a new task" v-model="newTask" v-on:keyup="whileTyping" />
-            </div>
-            <div class="control">
-              <button class="button is-primary" v-on:click="addTask" v-html="buttons.addTask.icon" v-bind:title="buttons.addTask.title" v-bind:disabled="buttons.addTask.disabled"></button>
+          <div class="columns level-item">
+            <div class="column">Tasks</div>
+            <div class="column is-half">
+              <div class="field has-addons is-pulled-right">
+                <p class="control">
+                  <input class="input" type="text" placeholder="Add a new task" v-model="newTask" v-on:keyup.enter="addTask" />
+                </p>
+                <p class="control">
+                  <button class="button is-primary" v-on:click="addTask" v-html="buttons.addTask.icon" v-bind:title="buttons.addTask.title" v-bind:disabled="buttons.addTask.disabled"></button>
+                </p>
+              </div>
             </div>
           </div>
         </div>
-        
-        <div class="panel-tabs"> 
+
+        <div class="panel-block">
+          <div class="field has-addons">
+            <div class="control has-icons-left">
+              <input class="input is-small" type="text" placeholder="Search" v-model="filterStr" size="30">
+              <span class="icon is-small is-left">
+                <i class="fa fa-search"></i>
+              </span>
+            </div>
+            <div class="control level-item">
+              <button v-bind:disabled="buttons.filterTasks.disabled" class="button is-small" v-on:click="removeFilter" v-html="buttons.filterTasks.icon"></button>
+              &nbsp;&nbsp;
+              <label class="checkbox">
+                <input v-model="buttons.filterTasks.matchCase" type="checkbox"><span class="small-font">Match Case</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-tabs">
           <a v-bind:class="{ 'is-active': tab.allActive }" v-on:click="activateTab(1)">All ({{ allTasks.length }})</a>
           <a v-bind:class="{ 'is-active': tab.incompleteActive }" v-on:click="activateTab(2)">Incomplete ({{ incompleteTasks.length }})</a>
           <a v-bind:class="{ 'is-active': tab.completedActive }" v-on:click="activateTab(3)">Completed ({{ completedTasks.length }})</a>
           <a v-bind:class="{ 'is-active': tab.deletedActive }" v-on:click="activateTab(4)">Deleted ({{ deletedTasks.length }})</a>
         </div>
-        
+
         <div class="panel-block" v-if="!allTasks.length">
           There are no tasks yet
         </div>
@@ -35,24 +55,24 @@
                 <input v-model="task.completed" type="checkbox">
                 {{ task.description }}
               </label>
-              <p class="icon is-small is-danger is-pulled-right" v-on:click="deleteTask(task.id)">
+              <span class="icon is-pulled-right" v-on:click="deleteTask(task.id)">
                   <i class="fa fa-remove"></i>
-              </p>
+              </span>
             </p>
         </div>
-        
+
         <div class="panel-block complete-tasks" v-for="task in completedTasks" v-if="tab.allActive || tab.completedActive">
             <p class="control">
               <label class="checkbox">
                 <input v-model="task.completed" type="checkbox">
                 {{ task.description }}
               </label>
-              <p class="icon is-small is-danger is-pulled-right" v-on:click="deleteTask(task.id)">
+              <span class="icon is-pulled-right" v-on:click="deleteTask(task.id)">
                   <i class="fa fa-remove"></i>
-              </p>
+              </span>
             </p>
         </div>
-        
+
         <div class="panel-block trashed-tasks" v-for="task in deletedTasks" v-if="tab.deletedActive">
             <p class="control">
               <label class="checkbox disabled">
@@ -86,32 +106,28 @@ export default {
         completedActive: false,
         deletedActive: false
       },
+      filterStr: '',
       buttons: {
         addTask: {
           title: 'Click to add a new task',
           icon: `<i class="fa fa-plus" aria-hidden="true"></i>`,
           disabled: true
+        },
+        filterTasks: {
+          label: '',
+          icon: `<i class="fa fa-remove"></i>`,
+          disabled: true,
+          matchCase: false
         }
       }
     }
   },
   methods: {
-    whileTyping: function (e) { // when the user types in the text box...
-      if (this.newTask.length) {
-        this.buttons.addTask.disabled = false // enable the button since we have some text in the box
-        if (e.key === 'Enter') { // if the Enter key was pressed
-          this.addTask() // add the task
-        }
-      } else { // disable the button if there's no text
-        this.buttons.addTask.disabled = true
-      }
-    },
     addTask: function () {
       if (this.newTask.length) {
         const newId = this.genRandTaskId(this.tasks.length + 1, this.newTask)
         this.tasks.push({ id: newId, description: this.newTask, completed: false, deleted: false })
         this.newTask = '' // clear the text box
-        this.buttons.addTask.disabled = true // once we're done adding the task, disable the button again
       }
     },
     activateTab: function (i) {
@@ -121,6 +137,9 @@ export default {
         completedActive: i === 3,
         deletedActive: i === 4
       }
+    },
+    removeFilter: function () {
+      this.filterStr = ''
     },
     genRandTaskId: function (num, seed) {
       const thisseed = seed || Math.random()
@@ -133,7 +152,14 @@ export default {
   },
   computed: {
     allTasks: function () {
-      return this.tasks.filter(task => !task.deleted)
+      const allTasks = this.tasks.filter(task => !task.deleted)
+      if (this.filterStr.length) {
+        // Regex case sensitive/insensitive depending on the Match Case checkbox
+        const params = this.buttons.filterTasks.matchCase ? 'g' : 'ig'
+        const re = new RegExp(this.filterStr, params)
+        return allTasks.filter(task => task.description.match(re))
+      }
+      return allTasks
     },
     completedTasks: function () {
       return this.allTasks.filter(task => task.completed)
@@ -143,6 +169,16 @@ export default {
     },
     deletedTasks: function () {
       return this.tasks.filter(task => task.deleted)
+    }
+  },
+  watch: {
+    // Watch for text being entered in the New Task box
+    newTask: function () {
+      this.buttons.addTask.disabled = !this.newTask.length
+    },
+    // Watch for text being entered in the Filter Task box
+    filterStr: function () {
+      this.buttons.filterTasks.disabled = !this.filterStr.length
     }
   }
 }
