@@ -1,6 +1,8 @@
 <template>
   <section>
 
+    <modal-task-delete-confirmation v-bind:modal-props="modal.delete" v-bind:all-tasks="allTasks"></modal-task-delete-confirmation>
+
     <section class="section">
 
       <nav class="panel">
@@ -92,9 +94,13 @@
 <script>
 import _ from 'lodash'
 import Crypto from 'crypto-browserify'
+import ModalTaskDelete from './ModalTaskDelete'
 
 export default {
   name: 'todo',
+  components: {
+    'modal-task-delete-confirmation': ModalTaskDelete
+  },
   data () {
     return {
       title: 'ToDo List',
@@ -118,6 +124,14 @@ export default {
           icon: `<i class="fa fa-remove"></i>`,
           disabled: true,
           matchCase: false
+        }
+      },
+      modal: {
+        delete: {
+          showModal: false,
+          title: 'Are you sure you want to delete this task?',
+          item: {},
+          itemIndex: undefined
         }
       }
     }
@@ -146,8 +160,15 @@ export default {
       return Crypto.createHash('sha256').update(new Date() + num.toString() + thisseed).digest('hex')
     },
     deleteTask: function (id) {
-      const itemIndex = _.findIndex(this.tasks, task => task.id === id)
-      this.tasks[itemIndex].deleted = true
+      const itemIndex = _.findIndex(this.allTasks, task => task.id === id)
+
+      // Open the Delete Task Confirmation Modal
+      // and pass it the current task object
+      this.modal.delete.showModal = true
+      this.modal.delete.item = this.allTasks[itemIndex]
+
+      // also pass the array index of the item to be deleted
+      this.modal.delete.itemIndex = itemIndex
     }
   },
   computed: {
