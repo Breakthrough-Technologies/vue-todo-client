@@ -51,10 +51,10 @@
           There are no tasks yet
         </div>
 
-        <div class="panel-block incomplete-tasks" v-for="task in incompleteTasks" v-if="tab.allActive || tab.incompleteActive">
+        <div class="panel-block incomplete-tasks" v-for="task in incompleteTasks" v-bind:key="task.id" v-if="tab.allActive || tab.incompleteActive">
             <p class="control">
               <label class="checkbox">
-                <input v-model="task.completed" type="checkbox">
+                <input v-bind:checked="task.completed"  v-on:change="toggleCompleted(task.id)" type="checkbox">
                 {{ task.description }}
               </label>
               <span class="icon is-pulled-right" v-on:click="deleteTask(task.id)">
@@ -63,10 +63,10 @@
             </p>
         </div>
 
-        <div class="panel-block complete-tasks" v-for="task in completedTasks" v-if="tab.allActive || tab.completedActive">
+        <div class="panel-block complete-tasks" v-for="task in completedTasks" v-bind:key="task.id" v-if="tab.allActive || tab.completedActive">
             <p class="control">
               <label class="checkbox">
-                <input v-model="task.completed" type="checkbox">
+                <input v-bind:checked="task.completed"  v-on:change="toggleCompleted(task.id)" type="checkbox">
                 {{ task.description }}
               </label>
               <span class="icon is-pulled-right" v-on:click="deleteTask(task.id)">
@@ -75,10 +75,10 @@
             </p>
         </div>
 
-        <div class="panel-block trashed-tasks" v-for="task in deletedTasks" v-if="tab.deletedActive">
+        <div class="panel-block deleted-tasks" v-for="task in deletedTasks" v-bind:key="task.id" v-if="tab.deletedActive">
             <p class="control">
               <label class="checkbox disabled">
-                <input :checked="task.completed" type="checkbox">
+                <input v-bind:checked="task.completed" type="checkbox">
                 {{ task.description }}
               </label>
             </p>
@@ -94,6 +94,7 @@
 <script>
 import _ from 'lodash'
 import Crypto from 'crypto-browserify'
+import store from '../store'
 import ModalTaskDelete from './ModalTaskDelete'
 
 export default {
@@ -140,7 +141,8 @@ export default {
     addTask: function () {
       if (this.newTask.length) {
         const newId = this.genRandTaskId(this.tasks.length + 1, this.newTask)
-        this.tasks.push({ id: newId, description: this.newTask, completed: false, deleted: false })
+        const task = { id: newId, description: this.newTask, completed: false, deleted: false }
+        store.dispatch('addTask', task) // add the task asynchronously
         this.newTask = '' // clear the text box
       }
     },
@@ -151,6 +153,9 @@ export default {
         completedActive: i === 3,
         deletedActive: i === 4
       }
+    },
+    toggleCompleted: function (id) {
+      store.dispatch('toggleCompletedFlag', id)
     },
     removeFilter: function () {
       this.filterStr = ''
@@ -173,23 +178,16 @@ export default {
   },
   computed: {
     allTasks: function () {
-      const allTasks = this.tasks.filter(task => !task.deleted)
-      if (this.filterStr.length) {
-        // Regex case sensitive/insensitive depending on the Match Case checkbox
-        const params = this.buttons.filterTasks.matchCase ? 'g' : 'ig'
-        const re = new RegExp(this.filterStr, params)
-        return allTasks.filter(task => task.description.match(re))
-      }
-      return allTasks
+      return store.getters.allTasks(this.filterStr)
     },
     completedTasks: function () {
-      return this.allTasks.filter(task => task.completed)
+      return store.getters.completedTasks(this.filterStr)
     },
     incompleteTasks: function () {
-      return this.allTasks.filter(task => !task.completed)
+      return store.getters.incompleteTasks(this.filterStr)
     },
     deletedTasks: function () {
-      return this.tasks.filter(task => task.deleted)
+      return store.getters.deletedTasks(this.filterStr)
     }
   },
   watch: {
