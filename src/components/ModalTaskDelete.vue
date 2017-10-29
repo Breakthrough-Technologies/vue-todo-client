@@ -20,22 +20,24 @@
 </template>
 
 <script>
-export default {
-  name: 'modal-task-delete-confirmation',
-  props: ['modalProps', 'allTasks'],
-  methods: {
-    closeModal: function () {
-      this.modalProps.showModal = false
+  import store from '../store'
+
+  export default {
+    name: 'modal-task-delete-confirmation',
+    props: ['modalProps', 'allTasks'],
+    methods: {
+      closeModal: function () {
+        this.modalProps.showModal = false
+      },
+      confirmDelete: function () {
+        store.dispatch('deleteTask', this.modalProps.itemIndex) // delete the task asynchronously
+        this.closeModal()
+      }
     },
-    confirmDelete: function () {
-      this.allTasks[this.modalProps.itemIndex].deleted = true
-      this.closeModal()
-    }
-  },
-  computed: {
-    isCompletedLabel: function () {
-      return this.modalProps.item.completed ? 'Completed' : 'Not completed'
+    computed: {
+      isCompletedLabel: function () {
+        return this.modalProps.item.completed ? 'Completed' : 'Not completed'
+      }
     }
   }
-}
 </script>
