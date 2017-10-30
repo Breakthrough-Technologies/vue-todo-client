@@ -18,7 +18,7 @@
       <!-- This "nav-menu" is hidden on mobile -->
       <!-- Add the modifier "is-active" to display it on mobile -->
       <div class="nav-right nav-menu" v-bind:class="{ 'is-active': menuIsActive }">
-          <a class="nav-item" href="/">Home</a>
+          <a class="nav-item" href="/#/">Home</a>
           <a class="nav-item" href="/#/ToDo">To-dos</a>
       </div>
   </nav>
