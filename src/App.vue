@@ -1,18 +1,23 @@
 <template>
   <div id="app">
     <app-header></app-header>
-    
+
     <router-view></router-view>
   </div>
 </template>
 
 <script>
 import AppHeader from './components/AppHeader'
+import store from './store'
+import localStorage from './store/localStorage'
 
 export default {
   name: 'app',
   components: {
     'app-header': AppHeader
+  },
+  mounted () {
+    store.dispatch('setTasks', localStorage.get('tasks'))
   }
 }
 </script>

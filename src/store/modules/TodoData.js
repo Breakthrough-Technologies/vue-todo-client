@@ -1,25 +1,35 @@
 import _ from 'lodash'
+import localStorage from '../localStorage'
 
 const state = {
   tasks: []
 }
 
 const mutations = {
+  SET_TASKS (state, tasks) {
+    state.tasks = tasks || []
+  },
   ADD_TASK (state, task) {
     if (task) {
       state.tasks.push(task)
+      localStorage.set('tasks', state.tasks)
     }
   },
   DELETE_TASK (state, itemIndex) {
     state.tasks[itemIndex].deleted = true
+    localStorage.set('tasks', state.tasks)
   },
   TOGGLE_COMPLETED_FLAG (state, id) {
     const itemIndex = _.findIndex(state.tasks, task => task.id === id)
     state.tasks[itemIndex].completed = !state.tasks[itemIndex].completed
+    localStorage.set('tasks', state.tasks)
   }
 }
 
 const actions = {
+  setTasks ({ commit }, tasks) {
+    commit('SET_TASKS', tasks)
+  },
   addTask ({ commit }, task) {
     // async
     commit('ADD_TASK', task)
